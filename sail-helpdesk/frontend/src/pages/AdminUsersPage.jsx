@@ -1,0 +1,313 @@
+// frontend/src/pages/AdminUsersPage.jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { UserPlus, Search, RefreshCw, X, Users } from 'lucide-react';
+import { AppLayout } from '../components/shared/Layout';
+import { RoleBadge, PageLoader, EmptyState, Pagination, Modal } from '../components/shared/UI';
+import api from '../utils/api';
+import toast from 'react-hot-toast';
+import { format } from 'date-fns';
+
+const ROLES = ['EMPLOYEE','ADMIN','AGENT','SUPERADMIN'];
+
+function UserForm({ onSave, onClose, departments }) {
+  const [form, setForm] = useState({ employee_id:'', full_name:'', email:'', password:'', role:'EMPLOYEE', dept_id:'', designation:'', phone:'' });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const e = {};
+    if (!form.employee_id) e.employee_id = 'Required';
+    if (!form.full_name || form.full_name.length < 2) e.full_name = 'Required';
+    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Valid email required';
+    if (!form.password || form.password.length < 8) e.password = 'Min 8 characters';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await api.post('/admin/users', form);
+      toast.success(`User ${form.employee_id} created successfully`);
+      onSave();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create user');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="form-group mb-0">
+          <label className="form-label">Employee ID *</label>
+          <input className={`form-input ${errors.employee_id ? 'border-red-400' : ''}`} value={form.employee_id} onChange={e => setForm(f => ({ ...f, employee_id: e.target.value.toUpperCase() }))} placeholder="EMP001" />
+          {errors.employee_id && <p className="form-error">{errors.employee_id}</p>}
+        </div>
+        <div className="form-group mb-0">
+          <label className="form-label">Full Name *</label>
+          <input className={`form-input ${errors.full_name ? 'border-red-400' : ''}`} value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} placeholder="Rajesh Kumar" />
+          {errors.full_name && <p className="form-error">{errors.full_name}</p>}
+        </div>
+      </div>
+      <div className="form-group mb-0">
+        <label className="form-label">Email *</label>
+        <input type="email" className={`form-input ${errors.email ? 'border-red-400' : ''}`} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="employee@sail.in" />
+        {errors.email && <p className="form-error">{errors.email}</p>}
+      </div>
+      <div className="form-group mb-0">
+        <label className="form-label">Password *</label>
+        <input type="password" className={`form-input ${errors.password ? 'border-red-400' : ''}`} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 8 characters" />
+        {errors.password && <p className="form-error">{errors.password}</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="form-group mb-0">
+          <label className="form-label">Role *</label>
+          <select className="form-input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+        <div className="form-group mb-0">
+          <label className="form-label">Department</label>
+          <select className="form-input" value={form.dept_id} onChange={e => setForm(f => ({ ...f, dept_id: e.target.value }))}>
+            <option value="">Select…</option>
+            {departments.map(d => <option key={d.DEPT_ID} value={d.DEPT_ID}>{d.DEPT_NAME}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="form-group mb-0">
+          <label className="form-label">Designation</label>
+          <input className="form-input" value={form.designation} onChange={e => setForm(f => ({ ...f, designation: e.target.value }))} placeholder="Senior Engineer" />
+        </div>
+        <div className="form-group mb-0">
+          <label className="form-label">Phone</label>
+          <input className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="9876543210" />
+        </div>
+      </div>
+      <div className="flex justify-end gap-3 pt-2">
+        <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
+        <button type="submit" disabled={loading} className="btn-primary">
+          {loading ? 'Creating…' : 'Create User'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 });
+  const [departments, setDepartments] = useState([]);
+  const [filters, setFilters] = useState({ search: '', role: '', dept_id: '', page: 1 });
+  const [showCreate, setShowCreate] = useState(false);
+  const [editUser, setEditUser] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    api.get('/lookup/departments').then(r => setDepartments(r.data.data || []));
+  }, []);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = { limit: 20, ...filters };
+      Object.keys(params).forEach(k => { if (!params[k]) delete params[k]; });
+      const res = await api.get('/admin/users', { params });
+      setUsers(res.data.data || []);
+      setPagination(p => ({ ...p, ...res.data.pagination }));
+    } catch { } finally { setLoading(false); }
+  }, [filters]);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  const toggleActive = async (userId, isActive) => {
+    try {
+      await api.put(`/admin/users/${userId}`, { is_active: isActive ? 0 : 1 });
+      toast.success(isActive ? 'User deactivated' : 'User activated');
+      fetchUsers();
+    } catch { toast.error('Failed to update user'); }
+  };
+
+  const saveEditUser = async () => {
+    setSaving(true);
+    try {
+      await api.put(`/admin/users/${editUser.USER_ID}`, {
+        full_name: editUser.FULL_NAME,
+        email: editUser.EMAIL,
+        role: editUser.ROLE,
+        dept_id: editUser.DEPT_ID,
+        designation: editUser.DESIGNATION,
+        phone: editUser.PHONE,
+      });
+      toast.success('User updated');
+      setEditUser(null);
+      fetchUsers();
+    } catch { toast.error('Update failed'); } finally { setSaving(false); }
+  };
+
+  return (
+    <AppLayout title="User Management" subtitle={`${pagination.total} users registered`}>
+
+      {/* Toolbar */}
+      <div className="flex flex-wrap gap-3 items-center mb-4">
+        <div className="relative flex-1 min-w-48">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-400" />
+          <input
+            type="text" placeholder="Search by name, ID, or email…"
+            value={filters.search}
+            onChange={e => setFilters(f => ({ ...f, search: e.target.value, page: 1 }))}
+            className="form-input pl-9 py-2"
+          />
+          {filters.search && (
+            <button onClick={() => setFilters(f => ({ ...f, search: '' }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-400 hover:text-steel-600">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <select value={filters.role} onChange={e => setFilters(f => ({ ...f, role: e.target.value, page: 1 }))} className="form-input py-2 text-sm w-36">
+          <option value="">All roles</option>
+          {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+        <select value={filters.dept_id} onChange={e => setFilters(f => ({ ...f, dept_id: e.target.value, page: 1 }))} className="form-input py-2 text-sm w-44">
+          <option value="">All departments</option>
+          {departments.map(d => <option key={d.DEPT_ID} value={d.DEPT_ID}>{d.DEPT_NAME}</option>)}
+        </select>
+        <button onClick={fetchUsers} className="btn-icon" title="Refresh"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /></button>
+        <button onClick={() => setShowCreate(true)} className="btn-primary">
+          <UserPlus size={15} /> Add User
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="card">
+        {loading ? <PageLoader /> : users.length === 0 ? (
+          <EmptyState icon={Users} title="No users found" description="Try adjusting your search filters." />
+        ) : (
+          <>
+            <div className="table-wrapper rounded-xl">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Tickets</th>
+                    <th>Last Login</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(u => (
+                    <tr key={u.USER_ID}>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-sail-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            {u.FULL_NAME?.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-steel-700">{u.FULL_NAME}</p>
+                            <p className="text-xs text-steel-400">{u.EMPLOYEE_ID}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-xs">{u.EMAIL}</td>
+                      <td className="text-xs">{u.DEPT_NAME || '—'}</td>
+                      <td><RoleBadge role={u.ROLE} /></td>
+                      <td>
+                        <span className={`badge ${u.IS_ACTIVE ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {u.IS_ACTIVE ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="text-xs text-center font-semibold">{u.TICKET_COUNT}</td>
+                      <td className="text-xs text-steel-500">
+                        {u.LAST_LOGIN ? format(new Date(u.LAST_LOGIN), 'MMM d, yyyy') : 'Never'}
+                      </td>
+                      <td>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => setEditUser({ ...u })}
+                            className="btn-secondary btn-sm py-1 px-2 text-xs">
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => toggleActive(u.USER_ID, u.IS_ACTIVE)}
+                            className={`btn-sm py-1 px-2 text-xs rounded-lg border font-semibold transition-all ${
+                              u.IS_ACTIVE
+                                ? 'border-red-200 text-red-600 hover:bg-red-50'
+                                : 'border-green-200 text-green-600 hover:bg-green-50'
+                            }`}>
+                            {u.IS_ACTIVE ? 'Deactivate' : 'Activate'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination {...pagination} onPageChange={p => setFilters(f => ({ ...f, page: p }))} />
+          </>
+        )}
+      </div>
+
+      {/* Create User Modal */}
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add New User" size="lg">
+        <UserForm departments={departments} onSave={() => { setShowCreate(false); fetchUsers(); }} onClose={() => setShowCreate(false)} />
+      </Modal>
+
+      {/* Edit User Modal */}
+      <Modal open={!!editUser} onClose={() => setEditUser(null)} title="Edit User" size="md">
+        {editUser && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-group mb-0">
+                <label className="form-label">Full Name</label>
+                <input className="form-input" value={editUser.FULL_NAME || ''} onChange={e => setEditUser(u => ({ ...u, FULL_NAME: e.target.value }))} />
+              </div>
+              <div className="form-group mb-0">
+                <label className="form-label">Email</label>
+                <input type="email" className="form-input" value={editUser.EMAIL || ''} onChange={e => setEditUser(u => ({ ...u, EMAIL: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-group mb-0">
+                <label className="form-label">Role</label>
+                <select className="form-input" value={editUser.ROLE} onChange={e => setEditUser(u => ({ ...u, ROLE: e.target.value }))}>
+                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <div className="form-group mb-0">
+                <label className="form-label">Department</label>
+                <select className="form-input" value={editUser.DEPT_ID || ''} onChange={e => setEditUser(u => ({ ...u, DEPT_ID: e.target.value }))}>
+                  <option value="">None</option>
+                  {departments.map(d => <option key={d.DEPT_ID} value={d.DEPT_ID}>{d.DEPT_NAME}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-group mb-0">
+                <label className="form-label">Designation</label>
+                <input className="form-input" value={editUser.DESIGNATION || ''} onChange={e => setEditUser(u => ({ ...u, DESIGNATION: e.target.value }))} />
+              </div>
+              <div className="form-group mb-0">
+                <label className="form-label">Phone</label>
+                <input className="form-input" value={editUser.PHONE || ''} onChange={e => setEditUser(u => ({ ...u, PHONE: e.target.value }))} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={() => setEditUser(null)} className="btn-secondary">Cancel</button>
+              <button onClick={saveEditUser} disabled={saving} className="btn-primary">
+                {saving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </AppLayout>
+  );
+}
