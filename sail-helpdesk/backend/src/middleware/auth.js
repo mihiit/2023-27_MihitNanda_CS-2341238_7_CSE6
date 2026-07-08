@@ -13,8 +13,8 @@ const authenticate = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     const result = await db.execute(
-      `SELECT u.user_id, u.emp_id, u.full_name, u.email, u.role, u.dept_id, 
-              u.is_active
+      `SELECT u.user_id, u.employee_id, u.full_name, u.email, u.role, u.dept_id, 
+              u.designation, u.is_active
        FROM USERS u WHERE u.user_id = :1 AND u.is_active = 1`,
       [decoded.userId]
     );
@@ -23,7 +23,6 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'User not found or inactive' });
     }
     req.user = result.rows[0];
-    req.user.EMPLOYEE_ID = req.user.EMP_ID;
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

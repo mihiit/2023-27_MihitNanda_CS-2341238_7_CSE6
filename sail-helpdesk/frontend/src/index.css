@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════
-   SAIL BRAND TOKENS
+   SAIL BRAND TOKENS — v2 premium pass
 ═══════════════════════════════════════════ */
 :root {
   --sail:        #1B2A6B;
@@ -14,11 +14,25 @@
   --sail-light:  #EEF0FA;
   --sail-mid:    #3D50A0;
   --sail-gold:   #C9A84C;
-  --border:      #DDE3F0;
-  --off:         #F5F7FF;
-  --text:        #1A1F3C;
-  --text-mid:    #4A5068;
-  --text-light:  #8890B5;
+  --sail-gold-deep: #A6863A;
+
+  /* warmer steel-gray neutrals replace the lavender-tinted originals */
+  --border:      #E3E1DC;
+  --border-soft: #ECEAE5;
+  --off:         #F7F6F3;
+  --surface:     #FFFFFF;
+  --text:        #1C1D22;
+  --text-mid:    #5B5D68;
+  --text-light:  #92939E;
+
+  /* elevation system — 3 tiers, used everywhere instead of ad hoc shadows */
+  --shadow-1: 0 1px 2px rgba(20,20,30,.04), 0 1px 1px rgba(20,20,30,.03);
+  --shadow-2: 0 2px 6px rgba(20,20,30,.06), 0 8px 20px rgba(20,20,30,.05);
+  --shadow-3: 0 8px 24px rgba(13,26,69,.14), 0 24px 56px rgba(13,26,69,.12);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
 }
 
 * { box-sizing: border-box; }
@@ -30,8 +44,8 @@ body {
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--off); }
+::-webkit-scrollbar-thumb { background: #B7B5AE; border-radius: 3px; }
 
 /* ══════════════════════════════════════════════════════
    SPLASH ANIMATION
@@ -161,25 +175,21 @@ body {
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  filter: brightness(0.45) saturate(0.8);
+  filter: brightness(0.95) saturate(1.08) contrast(1.04);
+  image-rendering: -webkit-optimize-contrast;
 }
 .login-bg-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     160deg,
-    rgba(13,26,69,0.88) 0%,
-    rgba(13,26,69,0.72) 50%,
-    rgba(13,26,69,0.60) 100%
+    rgba(13,26,69,0.42) 0%,
+    rgba(13,26,69,0.22) 45%,
+    rgba(13,26,69,0.38) 100%
   );
 }
 .login-bg-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
+  display: none;
 }
 
 /* Center wrapper */
@@ -428,53 +438,96 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════
-   SHARED APP COMPONENTS (unchanged)
+   SHARED APP COMPONENTS — premium pass
 ══════════════════════════════════════════════════════ */
+
+/* Signature element: faint steel-plate hairline mesh, used as a background
+   texture on the sidebar and topbar. Diamond-plate inspired, never literal. */
+.steel-mesh {
+  background-image:
+    linear-gradient(135deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(45deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
 @layer components {
   .btn-sail {
     @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
            text-white transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
     background: var(--sail);
+    box-shadow: var(--shadow-1);
   }
-  .btn-sail:hover:not(:disabled) { background: var(--sail-hover); transform: translateY(-1px); }
+  .btn-sail:hover:not(:disabled) {
+    background: var(--sail-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-2);
+  }
 
   .btn-outline {
     @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
-           bg-white border border-[#DDE3F0] text-[#4A5068]
-           hover:border-[#1B2A6B] hover:text-[#1B2A6B] transition-all duration-150
+           bg-white border text-[--text-mid]
+           hover:border-[--sail] hover:text-[--sail] transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed;
+    border-color: var(--border);
   }
 
   .sail-input {
-    @apply block w-full px-3 py-2.5 bg-[#F5F7FF] border border-[#DDE3F0] rounded-lg
-           text-sm text-[#1A1F3C] placeholder-[#8890B5]
-           focus:outline-none focus:ring-2 focus:border-[#1B2A6B] transition-all duration-150;
-    --tw-ring-color: rgba(27,42,107,0.15);
+    @apply block w-full px-3 py-2.5 rounded-lg
+           text-sm placeholder-[--text-light]
+           focus:outline-none focus:ring-2 transition-all duration-150;
+    background: var(--off);
+    border: 1px solid var(--border);
+    color: var(--text);
+    --tw-ring-color: rgba(27,42,107,0.12);
   }
+  .sail-input:focus { border-color: var(--sail); background: #fff; }
+
   .sail-label {
-    @apply block text-xs font-700 text-[#4A5068] uppercase tracking-wide mb-1.5;
+    @apply block text-xs font-bold uppercase tracking-wide mb-1.5;
     font-weight: 700;
     letter-spacing: .06em;
+    color: var(--text-mid);
   }
 
   .sail-card {
-    @apply bg-white rounded-xl border border-[#DDE3F0];
-    box-shadow: 0 1px 3px rgba(27,42,107,.06), 0 4px 12px rgba(27,42,107,.04);
+    @apply bg-white rounded-xl border;
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-1);
+    transition: box-shadow .2s ease;
   }
   .sail-card-header {
-    @apply px-5 py-4 border-b border-[#DDE3F0] flex items-center justify-between;
+    @apply px-5 py-4 flex items-center justify-between;
+    border-bottom: 1px solid var(--border-soft);
   }
   .sail-card-title {
-    @apply text-sm font-bold text-[#1B2A6B];
+    @apply text-sm font-bold;
     font-family: 'Playfair Display', serif;
     font-size: 14px;
+    color: var(--sail);
   }
 
+  /* ── Sidebar nav ── */
   .nav-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-           text-white/60 hover:text-white hover:bg-white/10 transition-all duration-150 cursor-pointer;
+    @apply flex items-center gap-3 px-3 py-2.5 text-sm font-medium
+           text-white/60 hover:text-white transition-all duration-150 cursor-pointer relative;
+    border-radius: 10px;
   }
-  .nav-link.active { @apply text-white bg-white/15 font-semibold; }
+  .nav-link:hover { background: rgba(255,255,255,0.07); }
+  .nav-link.active {
+    @apply text-white font-semibold;
+    background: linear-gradient(90deg, rgba(201,168,76,0.16), rgba(255,255,255,0.06));
+  }
+  .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--sail-gold);
+    box-shadow: 0 0 8px rgba(201,168,76,0.6);
+  }
 
   .badge { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold; }
   .badge-open       { @apply badge bg-blue-100 text-blue-800; }
@@ -489,14 +542,342 @@ body {
   .badge-low        { @apply badge bg-green-100 text-green-800; }
 
   .sail-table { @apply w-full text-sm border-collapse; }
-  .sail-table thead tr { @apply bg-[#F5F7FF] border-b border-[#DDE3F0]; }
-  .sail-table thead th { @apply px-4 py-3 text-left text-xs font-bold text-[#8890B5] uppercase tracking-wide whitespace-nowrap; }
-  .sail-table tbody tr { @apply border-b border-[#F5F7FF] hover:bg-[#F5F7FF] transition-colors; }
-  .sail-table tbody td { @apply px-4 py-3 text-[#4A5068]; }
+  .sail-table thead tr { background: var(--off); border-bottom: 1px solid var(--border-soft); }
+  .sail-table thead th { @apply px-4 py-3 text-left text-xs font-bold uppercase tracking-wide whitespace-nowrap; color: var(--text-light); }
+  .sail-table tbody tr { border-bottom: 1px solid var(--border-soft); transition: background .12s; }
+  .sail-table tbody tr:hover { background: var(--off); }
+  .sail-table tbody td { @apply px-4 py-3; color: var(--text-mid); }
 
-  .kpi-card { @apply sail-card p-5 flex items-start gap-4; }
+  /* ── KPI card with signature gold accent edge ── */
+  .kpi-card {
+    @apply sail-card p-5 flex items-start gap-4 relative overflow-hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--sail-gold);
+    opacity: 0.85;
+  }
+  .kpi-card:hover { box-shadow: var(--shadow-2); }
   .kpi-icon { @apply w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0; }
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-light);
+  }
 }
 
 @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 .fade-up { animation: fadeUp .3s ease both; }
+
+/* ══════════════════════════════════════════════════════
+   GLASSMORPHISM + 3D DEPTH — Dashboard premium layer
+══════════════════════════════════════════════════════ */
+
+/* Ambient gradient mesh background sits behind glass cards to give them
+   something to refract. Used once near the top of dashboard pages. */
+.glass-backdrop {
+  position: relative;
+  isolation: isolate;
+}
+.glass-backdrop::before {
+  content: '';
+  position: absolute;
+  inset: -40px -20px;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(27,42,107,0.10), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(201,168,76,0.12), transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(61,80,160,0.08), transparent 50%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* Glass KPI card: frosted surface + 3D tilt-on-hover + glowing accent */
+.glass-card {
+  position: relative;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 1px rgba(255,255,255,0.8) inset,
+    0 1px 3px rgba(20,20,30,.05),
+    0 12px 28px rgba(20,20,30,.07);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.glass-card:hover {
+  transform: translateY(-4px) rotateX(2deg) rotateY(-2deg) scale(1.012);
+  box-shadow:
+    0 1px 1px rgba(255,255,255,0.85) inset,
+    0 4px 8px rgba(20,20,30,.06),
+    0 24px 48px rgba(20,20,30,.12);
+}
+
+/* Glass KPI specific layout, accent edge + icon orb with glow */
+.glass-kpi {
+  @apply glass-card p-5 flex items-start gap-4 overflow-hidden;
+}
+.glass-kpi::after {
+  content: '';
+  position: absolute;
+  top: -30%; right: -20%;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: var(--kpi-glow, rgba(27,42,107,0.14));
+  filter: blur(28px);
+  pointer-events: none;
+}
+.glass-kpi-icon {
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 6px 16px -4px var(--kpi-shadow, rgba(27,42,107,0.4)), 0 1px 1px rgba(255,255,255,0.4) inset;
+}
+.glass-kpi-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.glass-kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-mid);
+  margin-top: 1px;
+}
+.glass-kpi-sub {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+/* Glass panel for chart/table containers — lighter blur, more transparent */
+.glass-panel {
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 1px rgba(255,255,255,0.7) inset, var(--shadow-2);
+}
+.glass-panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(227,225,220,0.6);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.glass-panel-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sail);
+}
+
+/* Floating sparkline mini-trend chip, used inside KPI cards */
+.kpi-trend-up   { @apply badge bg-green-50 text-green-700; }
+.kpi-trend-down { @apply badge bg-red-50 text-red-700; }
+
+/* Subtle shimmer sweep for a one-time premium "loaded" feel on cards */
+@keyframes shimmerSweep {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.glass-shimmer {
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmerSweep 1.8s ease-in-out 1;
+}
+
+/* ══════════════════════════════════════════════════════
+   SIGNATURE MOMENTS — priority/category tiles, hero stats,
+   health gauge, activity ticker, self-drawing charts
+══════════════════════════════════════════════════════ */
+
+/* ── Priority tiles: physical-feeling, severity-coded glow ── */
+.priority-tile {
+  position: relative;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  border: 1.5px solid var(--border-soft);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, border-color .2s ease;
+  overflow: hidden;
+}
+.priority-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
+.priority-tile.selected {
+  transform: translateY(-2px) scale(1.015);
+  border-color: var(--tile-color);
+  box-shadow: 0 10px 24px -8px var(--tile-glow), var(--shadow-1);
+}
+.priority-tile.selected::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--tile-glow), transparent 60%);
+  pointer-events: none;
+}
+.priority-tile.critical.selected { animation: criticalPulse 1.8s ease-in-out infinite; }
+@keyframes criticalPulse {
+  0%, 100% { box-shadow: 0 10px 24px -8px var(--tile-glow), var(--shadow-1); }
+  50%      { box-shadow: 0 14px 32px -6px var(--tile-glow), var(--shadow-1); }
+}
+
+/* ── Category tiles: icon-forward selectable grid ── */
+.cat-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 16px 8px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-soft);
+  background: rgba(255,255,255,0.78);
+  cursor: pointer;
+  transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.cat-tile:hover { transform: translateY(-2px) scale(1.03); box-shadow: var(--shadow-2); }
+.cat-tile.selected {
+  border-color: var(--sail);
+  background: linear-gradient(160deg, rgba(27,42,107,0.08), rgba(201,168,76,0.06));
+  box-shadow: 0 8px 20px -6px rgba(27,42,107,0.25);
+  transform: translateY(-2px) scale(1.04);
+}
+.cat-tile-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--off);
+  transition: background .2s, transform .2s;
+}
+.cat-tile.selected .cat-tile-icon {
+  background: var(--sail);
+  transform: scale(1.08) rotate(-4deg);
+}
+.cat-tile.selected .cat-tile-icon svg { color: #fff !important; }
+
+/* ── Live ticket preview panel ── */
+.preview-panel {
+  position: sticky;
+  top: 80px;
+}
+.preview-glow {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(165deg, #1B2A6B 0%, #233a8a 55%, #16215A 100%);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+.preview-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -20%;
+  width: 70%; height: 140%;
+  background: radial-gradient(circle, rgba(201,168,76,0.18), transparent 65%);
+  pointer-events: none;
+}
+
+/* ── Hero stat number — the room's centerpiece ── */
+.hero-stat {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: clamp(56px, 8vw, 96px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--sail) 0%, var(--sail-mid) 50%, var(--sail-gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+.hero-stat-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Radial health gauge ── */
+.gauge-track { stroke: var(--border-soft); fill: none; }
+.gauge-progress {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1);
+}
+
+/* ── Self-drawing chart line/area animation ── */
+@keyframes drawLine {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+.chart-draw path.recharts-area-area,
+.chart-draw path.recharts-line-curve {
+  stroke-dasharray: 1000;
+  animation: drawLine 1.4s ease-out forwards;
+}
+@keyframes growBar {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.bar-grow { transform-origin: left; animation: growBar .7s cubic-bezier(.2,.8,.2,1) both; }
+
+/* ── Activity ticker — live feed strip ── */
+.ticker-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.6);
+  animation: tickerIn .4s ease both;
+}
+@keyframes tickerIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.ticker-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 currentColor;
+  animation: tickerPulse 2s ease-out infinite;
+}
+@keyframes tickerPulse {
+  0%   { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  70%  { box-shadow: 0 0 0 6px transparent; opacity: 0.6; }
+  100% { box-shadow: 0 0 0 0 transparent; opacity: 1; }
+}
+
+/* ── Counting-up number transition helper ── */
+.count-up { transition: none; }
+
+/* ── Floating label chip used on the ticket preview ── */
+.chip-float {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

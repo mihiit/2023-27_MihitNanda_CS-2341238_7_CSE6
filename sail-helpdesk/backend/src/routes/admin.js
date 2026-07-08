@@ -61,10 +61,10 @@ router.get('/dashboard', async (req, res) => {
 
     // Top agents by resolved
     const topAgents = await db.execute(
-      `SELECT u.full_name, u.emp_id, COUNT(t.ticket_id) AS resolved_count
+      `SELECT u.full_name, u.employee_id, COUNT(t.ticket_id) AS resolved_count
        FROM TICKETS t JOIN USERS u ON t.resolved_by = u.user_id
        WHERE t.status IN ('RESOLVED','CLOSED')
-       GROUP BY u.full_name, u.emp_id
+       GROUP BY u.full_name, u.employee_id
        ORDER BY resolved_count DESC
        FETCH FIRST 5 ROWS ONLY`
     );
@@ -108,7 +108,7 @@ router.get('/dashboard', async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Dashboard error:', err);
+    logger.error('Dashboard error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -122,7 +122,7 @@ router.get('/users', authorize('ADMIN', 'SUPERADMIN'), async (req, res) => {
     const where = [];
 
     if (search) {
-      where.push(`(UPPER(u.full_name) LIKE :${params.length + 1} OR UPPER(u.email) LIKE :${params.length + 1} OR u.emp_id LIKE :${params.length + 1})`);
+      where.push(`(UPPER(u.full_name) LIKE :${params.length + 1} OR UPPER(u.email) LIKE :${params.length + 1} OR u.employee_id LIKE :${params.length + 1})`);
       params.push('%' + search.toUpperCase() + '%');
     }
     if (role)    { where.push(`u.role = :${params.length + 1}`);    params.push(role); }
@@ -133,7 +133,7 @@ router.get('/users', authorize('ADMIN', 'SUPERADMIN'), async (req, res) => {
     const countRes = await db.execute(`SELECT COUNT(*) AS total FROM USERS u ${whereClause}`, params);
 
     const result = await db.execute(
-      `SELECT u.user_id, u.emp_id, u.full_name, u.email, u.phone,
+      `SELECT u.user_id, u.employee_id, u.full_name, u.email, u.phone,
               u.role, u.is_active, u.last_login, u.created_at, d.dept_name,
               (SELECT COUNT(*) FROM TICKETS t WHERE t.created_by = u.user_id) AS ticket_count
        FROM USERS u
@@ -150,7 +150,7 @@ router.get('/users', authorize('ADMIN', 'SUPERADMIN'), async (req, res) => {
       pagination: { page: parseInt(page), limit: parseInt(limit), total: countRes.rows[0].TOTAL },
     });
   } catch (err) {
-    logger.error('Get users error:', err);
+    logger.error('Get users error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -170,7 +170,7 @@ router.post('/users', authorize('ADMIN', 'SUPERADMIN'), [
     const hash = await bcrypt.hash(password, 10);
 
     const result = await db.execute(
-      `INSERT INTO USERS (emp_id, full_name, email, password_hash, role, dept_id, phone)
+      `INSERT INTO USERS (employee_id, full_name, email, password_hash, role, dept_id, phone)
        VALUES (:1, :2, :3, :4, :5, :6, :7)
        RETURNING user_id INTO :8`,
       [employee_id, full_name, email, hash, role, dept_id || null, phone || null,
@@ -180,7 +180,7 @@ router.post('/users', authorize('ADMIN', 'SUPERADMIN'), [
     res.status(201).json({ success: true, data: { user_id: result.outBinds[0][0] } });
   } catch (err) {
     if (err.errorNum === 1) return res.status(409).json({ success: false, message: 'Employee ID or email already exists' });
-    logger.error('Create user error:', err);
+    logger.error('Create user error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -202,7 +202,7 @@ router.put('/users/:id', authorize('ADMIN', 'SUPERADMIN'), async (req, res) => {
     );
     res.json({ success: true, message: 'User updated' });
   } catch (err) {
-    logger.error('Update user error:', err);
+    logger.error('Update user error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -213,7 +213,7 @@ router.get('/departments', async (req, res) => {
     const result = await db.execute('SELECT * FROM DEPARTMENTS WHERE is_active = 1 ORDER BY dept_name');
     res.json({ success: true, data: result.rows });
   } catch (err) {
-    logger.error('Get departments error:', err);
+    logger.error('Get departments error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -223,7 +223,7 @@ router.get('/categories', async (req, res) => {
     const result = await db.execute('SELECT * FROM CATEGORIES WHERE is_active = 1 ORDER BY cat_name');
     res.json({ success: true, data: result.rows });
   } catch (err) {
-    logger.error('Get categories error:', err);
+    logger.error('Get categories error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -233,7 +233,7 @@ router.get('/priorities', async (req, res) => {
     const result = await db.execute('SELECT * FROM PRIORITIES WHERE is_active = 1 ORDER BY sort_order');
     res.json({ success: true, data: result.rows });
   } catch (err) {
-    logger.error('Get priorities error:', err);
+    logger.error('Get priorities error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -245,7 +245,7 @@ router.get('/audit-logs', authorize('SUPERADMIN'), async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const result = await db.execute(
       `SELECT a.audit_id, a.action, a.entity_type, a.entity_id, a.ip_address, a.response_code, a.created_at,
-              u.full_name, u.emp_id
+              u.full_name, u.employee_id
        FROM AUDIT_LOGS a
        LEFT JOIN USERS u ON a.user_id = u.user_id
        ORDER BY a.created_at DESC
@@ -254,7 +254,7 @@ router.get('/audit-logs', authorize('SUPERADMIN'), async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (err) {
-    logger.error('Audit logs error:', err);
+    logger.error('Audit logs error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -297,7 +297,7 @@ router.get('/reports/summary', async (req, res) => {
 
     res.json({ success: true, data: { summary: result.rows[0], byDepartment: byDept.rows } });
   } catch (err) {
-    logger.error('Reports summary error:', err);
+    logger.error('Reports summary error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -318,7 +318,7 @@ router.get('/notifications', authenticate, async (req, res) => {
     );
     res.json({ success: true, data: result.rows, unread_count: unread.rows[0].CNT });
   } catch (err) {
-    logger.error('Admin notifications error:', err);
+    logger.error('Admin notifications error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -328,7 +328,7 @@ router.put('/notifications/mark-read', authenticate, async (req, res) => {
     await db.execute(`UPDATE NOTIFICATIONS SET is_read = 1 WHERE user_id = :1`, [req.user.USER_ID]);
     res.json({ success: true });
   } catch (err) {
-    logger.error('Mark read error:', err);
+    logger.error('Mark read error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

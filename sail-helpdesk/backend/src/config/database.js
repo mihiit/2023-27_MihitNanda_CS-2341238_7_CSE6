@@ -18,10 +18,15 @@ async function initialize() {
   try {
     oracledb.autoCommit = true;
     oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+    // Fetch CLOB columns as plain JS strings instead of Lob stream objects.
+    // Without this, columns like TICKETS.DESCRIPTION come back as Lob objects
+    // that hold an internal reference to the connection, causing
+    // "Converting circular structure to JSON" when sent via res.json().
+    oracledb.fetchAsString = [oracledb.CLOB];
     pool = await oracledb.createPool(dbConfig);
     logger.info('Oracle DB connection pool created successfully');
   } catch (err) {
-    logger.error('Failed to create Oracle DB pool:', err);
+    logger.error('Failed to create Oracle DB pool: ' + (err?.message || err));
     throw err;
   }
 }

@@ -51,7 +51,7 @@ app.get('/api/lookup/departments', async (req, res) => {
     const r = await db_.execute('SELECT dept_id, dept_name, dept_code FROM DEPARTMENTS WHERE is_active = 1 ORDER BY dept_name');
     res.json({ success: true, data: r.rows });
   } catch (err) {
-    logger.error('Departments lookup error:', err);
+    logger.error('Departments lookup error: ' + (err?.message || err));
     res.status(500).json({ success: false });
   }
 });
@@ -61,7 +61,7 @@ app.get('/api/lookup/categories', async (req, res) => {
     const r = await db_.execute('SELECT cat_id, cat_name, cat_code FROM CATEGORIES WHERE is_active = 1 ORDER BY cat_name');
     res.json({ success: true, data: r.rows });
   } catch (err) {
-    logger.error('Categories lookup error:', err);
+    logger.error('Categories lookup error: ' + (err?.message || err));
     res.status(500).json({ success: false });
   }
 });
@@ -71,7 +71,7 @@ app.get('/api/lookup/priorities', async (req, res) => {
     const r = await db_.execute('SELECT priority_id, priority_name, priority_code, color_hex FROM PRIORITIES WHERE is_active = 1 ORDER BY sort_order');
     res.json({ success: true, data: r.rows });
   } catch (err) {
-    logger.error('Priorities lookup error:', err);
+    logger.error('Priorities lookup error: ' + (err?.message || err));
     res.status(500).json({ success: false });
   }
 });
@@ -100,7 +100,7 @@ app.get('/api/notifications', authenticate, async (req, res) => {
     );
     res.json({ success: true, data: result.rows, unread_count: unread.rows[0].CNT });
   } catch (err) {
-    logger.error('Notifications error:', err);
+    logger.error('Notifications error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -110,7 +110,7 @@ app.put('/api/notifications/mark-read', authenticate, async (req, res) => {
     await db_.execute(`UPDATE NOTIFICATIONS SET is_read = 1 WHERE user_id = :1`, [req.user.USER_ID]);
     res.json({ success: true });
   } catch (err) {
-    logger.error('Mark read error:', err);
+    logger.error('Mark read error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -122,7 +122,7 @@ app.use('*', (req, res) => {
 
 // ─── Global error handler ─────────────────────────────────────
 app.use((err, req, res, next) => {
-  logger.error('Unhandled error:', err);
+  logger.error('Unhandled error: ' + (err?.message || err));
   res.status(500).json({ success: false, message: 'An unexpected error occurred' });
 });
 
@@ -135,7 +135,7 @@ async function start() {
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (err) {
-    logger.error('Startup failed:', err);
+    logger.error('Startup failed: ' + (err?.message || err));
     process.exit(1);
   }
 }

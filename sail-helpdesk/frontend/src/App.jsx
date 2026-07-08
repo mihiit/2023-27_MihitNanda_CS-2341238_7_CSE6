@@ -12,6 +12,7 @@ import AdminDashboard     from './pages/AdminDashboard';
 import AdminUsersPage     from './pages/AdminUsersPage';
 import AdminReportsPage   from './pages/AdminReportsPage';
 import ProfilePage        from './pages/ProfilePage';
+import NotificationsPage  from './pages/NotificationsPage';
 
 /* ── Premium spinner while checking token ── */
 function FullPageSpinner() {
@@ -69,7 +70,7 @@ function AppRoutes() {
       <Route path="/tickets/new"   element={<RequireAuth><CreateTicketPage /></RequireAuth>} />
       <Route path="/tickets/:id"   element={<RequireAuth><TicketDetailPage /></RequireAuth>} />
       <Route path="/profile"       element={<RequireAuth><ProfilePage /></RequireAuth>} />
-      <Route path="/notifications" element={<RequireAuth><EmployeeDashboard /></RequireAuth>} />
+      <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
 
       <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
       <Route path="/admin/tickets"   element={<RequireAdmin><TicketListPage /></RequireAdmin>} />
@@ -77,10 +78,10 @@ function AppRoutes() {
       <Route path="/admin/reports"   element={<RequireAdmin><AdminReportsPage /></RequireAdmin>} />
 
       <Route path="*" element={
-        <div className="flex items-center justify-center h-screen" style={{ background:'#F5F7FF' }}>
-          <div className="text-center">
-            <p className="text-6xl font-bold text-[#DDE3F0] mb-2">404</p>
-            <p className="text-[#8890B5] mb-4">Page not found</p>
+        <div className="flex items-center justify-center h-screen glass-backdrop" style={{ background:'var(--off)' }}>
+          <div className="text-center glass-card p-10">
+            <p className="font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", fontSize: 64, color: 'var(--border)' }}>404</p>
+            <p className="mb-5 text-sm" style={{ color: 'var(--text-mid)' }}>Page not found</p>
             <a href="/" className="btn-sail px-5 py-2 rounded-lg inline-flex">Go Home</a>
           </div>
         </div>
@@ -98,8 +99,18 @@ export default function App() {
           position="top-right"
           toastOptions={{
             duration: 4000,
-            style: { borderRadius: '10px', fontFamily: 'DM Sans, Inter, sans-serif', fontSize: '13.5px' },
+            style: {
+              borderRadius: '12px',
+              fontFamily: 'DM Sans, Inter, sans-serif',
+              fontSize: '13.5px',
+              background: 'rgba(255,255,255,0.92)',
+              backdropFilter: 'blur(12px)',
+              color: '#1C1D22',
+              border: '1px solid rgba(227,225,220,0.7)',
+              boxShadow: '0 8px 24px rgba(20,20,30,.10), 0 1px 1px rgba(255,255,255,.7) inset',
+            },
             success: { iconTheme: { primary: '#1B2A6B', secondary: '#fff' } },
+            error: { iconTheme: { primary: '#C0392B', secondary: '#fff' } },
           }}
         />
       </BrowserRouter>

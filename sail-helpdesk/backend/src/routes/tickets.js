@@ -76,7 +76,7 @@ router.get('/', authenticate, async (req, res) => {
               p.priority_name, p.color_hex,
               c.cat_name,
               d.dept_name,
-              u.full_name AS created_by_name, u.emp_id AS created_by_emp,
+              u.full_name AS created_by_name, u.employee_id AS created_by_emp,
               a.full_name AS assigned_to_name,
               (SELECT COUNT(*) FROM TICKET_REPLIES r WHERE r.ticket_id = t.ticket_id) AS reply_count
        FROM TICKETS t
@@ -97,7 +97,7 @@ router.get('/', authenticate, async (req, res) => {
       pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / parseInt(limit)) },
     });
   } catch (err) {
-    logger.error('Get tickets error:', err);
+    logger.error('Get tickets error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -109,7 +109,7 @@ router.get('/:id', authenticate, async (req, res) => {
       `SELECT t.*, p.priority_name, p.color_hex,
               c.cat_name,
               d.dept_name,
-              u.full_name AS created_by_name, u.email AS created_by_email, u.emp_id AS created_by_emp, u.phone AS created_by_phone,
+              u.full_name AS created_by_name, u.email AS created_by_email, u.employee_id AS created_by_emp, u.phone AS created_by_phone,
               a.full_name AS assigned_to_name, a.email AS assigned_to_email
        FROM TICKETS t
        JOIN PRIORITIES p ON t.priority_id = p.priority_id
@@ -130,7 +130,7 @@ router.get('/:id', authenticate, async (req, res) => {
     // Replies
     const repliesResult = await db.execute(
       `SELECT r.reply_id, r.body, r.reply_type, r.is_solution, r.created_at,
-              u.full_name AS author_name, u.role AS author_role, u.emp_id AS author_emp
+              u.full_name AS author_name, u.role AS author_role, u.employee_id AS author_emp
        FROM TICKET_REPLIES r
        JOIN USERS u ON r.author_id = u.user_id
        WHERE r.ticket_id = :1
@@ -166,7 +166,7 @@ router.get('/:id', authenticate, async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error('Get ticket error:', err);
+    logger.error('Get ticket error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -244,10 +244,10 @@ router.post('/', authenticate, upload.array('attachments', 5), [
       );
     }
 
-    logger.info(`Ticket created: SAIL-${ticketId} by ${req.user.EMP_ID}`);
+    logger.info(`Ticket created: SAIL-${ticketId} by ${req.user.EMPLOYEE_ID}`);
     res.status(201).json({ success: true, message: 'Ticket created successfully', data: { ticket_id: ticketId, ticket_ref: `SAIL-${ticketId}` } });
   } catch (err) {
-    logger.error('Create ticket error:', err);
+    logger.error('Create ticket error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -328,7 +328,7 @@ router.put('/:id', authenticate, authorize('ADMIN', 'SUPERADMIN', 'AGENT'), [
 
     res.json({ success: true, message: 'Ticket updated successfully' });
   } catch (err) {
-    logger.error('Update ticket error:', err);
+    logger.error('Update ticket error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -400,7 +400,7 @@ router.post('/:id/replies', authenticate, upload.array('attachments', 3), [
 
     res.status(201).json({ success: true, message: 'Reply added', data: { reply_id: replyId } });
   } catch (err) {
-    logger.error('Add reply error:', err);
+    logger.error('Add reply error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

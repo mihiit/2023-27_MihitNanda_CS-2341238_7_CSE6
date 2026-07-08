@@ -23,12 +23,12 @@ router.post('/login', [
     const { employee_id, password } = req.body;
 
     const result = await db.execute(
-      `SELECT u.user_id, u.emp_id, u.full_name, u.email, u.password_hash,
-              u.role, u.dept_id, u.is_active,
-              u.failed_login_attempts, u.account_locked_until, d.dept_name
+      `SELECT u.user_id, u.employee_id, u.full_name, u.email, u.password_hash,
+              u.role, u.dept_id, u.designation, u.is_active, u.phone,
+              u.login_attempts, u.locked_until, d.dept_name
        FROM USERS u
        LEFT JOIN DEPARTMENTS d ON u.dept_id = d.dept_id
-       WHERE u.emp_id = :1`,
+       WHERE u.employee_id = :1`,
       [employee_id]
     );
 
@@ -43,22 +43,22 @@ router.post('/login', [
     }
 
     // Check account lock
-    if (user.ACCOUNT_LOCKED_UNTIL && new Date(user.ACCOUNT_LOCKED_UNTIL) > new Date()) {
+    if (user.LOCKED_UNTIL && new Date(user.LOCKED_UNTIL) > new Date()) {
       return res.status(401).json({ 
         success: false, 
-        message: `Account locked until ${new Date(user.ACCOUNT_LOCKED_UNTIL).toLocaleString()}` 
+        message: `Account locked until ${new Date(user.LOCKED_UNTIL).toLocaleString()}` 
       });
     }
 
     const isMatch = await bcrypt.compare(password, user.PASSWORD_HASH);
 
     if (!isMatch) {
-      const attempts = (user.FAILED_LOGIN_ATTEMPTS || 0) + 1;
+      const attempts = (user.LOGIN_ATTEMPTS || 0) + 1;
       const lockUpdate = attempts >= 5
-        ? `, account_locked_until = SYSTIMESTAMP + INTERVAL '30' MINUTE`
+        ? `, locked_until = SYSTIMESTAMP + INTERVAL '30' MINUTE`
         : '';
       await db.execute(
-        `UPDATE USERS SET failed_login_attempts = :1 ${lockUpdate} WHERE user_id = :2`,
+        `UPDATE USERS SET login_attempts = :1 ${lockUpdate} WHERE user_id = :2`,
         [attempts, user.USER_ID]
       );
       return res.status(401).json({ 
@@ -71,24 +71,24 @@ router.post('/login', [
 
     // Reset attempts on success
     await db.execute(
-      `UPDATE USERS SET failed_login_attempts = 0, account_locked_until = NULL, last_login = SYSTIMESTAMP WHERE user_id = :1`,
+      `UPDATE USERS SET login_attempts = 0, locked_until = NULL, last_login = SYSTIMESTAMP WHERE user_id = :1`,
       [user.USER_ID]
     );
 
     const token = jwt.sign(
-      { userId: user.USER_ID, role: user.ROLE, empId: user.EMP_ID },
+      { userId: user.USER_ID, role: user.ROLE, empId: user.EMPLOYEE_ID },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
     );
 
-    logger.info(`User login: ${user.EMP_ID} (${user.ROLE})`);
+    logger.info(`User login: ${user.EMPLOYEE_ID} (${user.ROLE})`);
 
     res.json({
       success: true,
       token,
       user: {
         user_id: user.USER_ID,
-        employee_id: user.EMP_ID,
+        employee_id: user.EMPLOYEE_ID,
         full_name: user.FULL_NAME,
         email: user.EMAIL,
         role: user.ROLE,
@@ -99,7 +99,7 @@ router.post('/login', [
       },
     });
   } catch (err) {
-    logger.error('Login error:', err);
+    logger.error('Login error: ' + (err?.message || err));
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -108,16 +108,14 @@ router.post('/login', [
 router.get('/me', authenticate, async (req, res) => {
   try {
     const result = await db.execute(
-      `SELECT u.user_id, u.emp_id, u.full_name, u.email, u.role,
-              u.dept_id, u.last_login, d.dept_name
+      `SELECT u.user_id, u.employee_id, u.full_name, u.email, u.role,
+              u.dept_id, u.designation, u.phone, u.last_login, d.dept_name
        FROM USERS u
        LEFT JOIN DEPARTMENTS d ON u.dept_id = d.dept_id
        WHERE u.user_id = :1`,
       [req.user.USER_ID]
     );
     const row = result.rows[0];
-    // normalize emp_id -> employee_id for frontend compatibility
-    if (row) row.EMPLOYEE_ID = row.EMP_ID;
     res.json({ success: true, user: row });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });

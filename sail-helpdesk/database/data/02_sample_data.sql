@@ -51,21 +51,21 @@ INSERT INTO CATEGORIES (cat_name, cat_code, description, icon, sla_hours) VALUES
   ('General IT Request',      'GENERAL',     'Other IT service requests',           'HelpCircle', 48);
 
 -- USERS (passwords are bcrypt hashes of "SAIL@2024")
--- Hash: $2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy
+-- Hash: $2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy
 INSERT INTO USERS (employee_id, full_name, email, password_hash, phone, designation, dept_id, role, is_active, email_verified) VALUES
-  ('EMP001', 'Rajesh Kumar Singh',    'rajesh.singh@sail.in',    '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy', '9876543210', 'System Administrator',     1, 'SUPERADMIN', 1, 1);
+  ('EMP001', 'Rajesh Kumar Singh',    'rajesh.singh@sail.in',    '$2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy', '9876543210', 'System Administrator',     1, 'SUPERADMIN', 1, 1);
 INSERT INTO USERS (employee_id, full_name, email, password_hash, phone, designation, dept_id, role, is_active, email_verified) VALUES
-  ('EMP002', 'Priya Mehta',           'priya.mehta@sail.in',     '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy', '9876543211', 'IT Support Manager',       1, 'ADMIN',      1, 1);
+  ('EMP002', 'Priya Mehta',           'priya.mehta@sail.in',     '$2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy', '9876543211', 'IT Support Manager',       1, 'ADMIN',      1, 1);
 INSERT INTO USERS (employee_id, full_name, email, password_hash, phone, designation, dept_id, role, is_active, email_verified) VALUES
-  ('EMP003', 'Amit Sharma',           'amit.sharma@sail.in',     '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy', '9876543212', 'IT Support Engineer',      1, 'AGENT',      1, 1);
+  ('EMP003', 'Amit Sharma',           'amit.sharma@sail.in',     '$2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy', '9876543212', 'IT Support Engineer',      1, 'AGENT',      1, 1);
 INSERT INTO USERS (employee_id, full_name, email, password_hash, phone, designation, dept_id, role, is_active, email_verified) VALUES
-  ('EMP004', 'Sunita Patel',          'sunita.patel@sail.in',    '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy', '9876543213', 'Senior Accountant',        3, 'EMPLOYEE',   1, 1);
+  ('EMP004', 'Sunita Patel',          'sunita.patel@sail.in',    '$2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy', '9876543213', 'Senior Accountant',        3, 'EMPLOYEE',   1, 1);
 INSERT INTO USERS (employee_id, full_name, email, password_hash, phone, designation, dept_id, role, is_active, email_verified) VALUES
-  ('EMP005', 'Vikram Yadav',          'vikram.yadav@sail.in',    '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy', '9876543214', 'Production Supervisor',    4, 'EMPLOYEE',   1, 1);
+  ('EMP005', 'Vikram Yadav',          'vikram.yadav@sail.in',    '$2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy', '9876543214', 'Production Supervisor',    4, 'EMPLOYEE',   1, 1);
 INSERT INTO USERS (employee_id, full_name, email, password_hash, phone, designation, dept_id, role, is_active, email_verified) VALUES
-  ('EMP006', 'Ananya Krishnan',       'ananya.krishnan@sail.in', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy', '9876543215', 'HR Business Partner',      2, 'EMPLOYEE',   1, 1);
+  ('EMP006', 'Ananya Krishnan',       'ananya.krishnan@sail.in', '$2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy', '9876543215', 'HR Business Partner',      2, 'EMPLOYEE',   1, 1);
 INSERT INTO USERS (employee_id, full_name, email, password_hash, phone, designation, dept_id, role, is_active, email_verified) VALUES
-  ('EMP007', 'Deepak Verma',          'deepak.verma@sail.in',    '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHHy', '9876543216', 'QC Engineer',              5, 'EMPLOYEE',   1, 1);
+  ('EMP007', 'Deepak Verma',          'deepak.verma@sail.in',    '$2b$10$ANO1HCX47ZRmljkgpUp/AuvjPvGO0VZUXfSBg84FAmJX8LDnU/kvy', '9876543216', 'QC Engineer',              5, 'EMPLOYEE',   1, 1);
 
 -- SAMPLE TICKETS (6 tickets)
 INSERT INTO TICKETS (ticket_ref, subject, description, status, priority_id, cat_id, dept_id, created_by, assigned_to, due_date) VALUES

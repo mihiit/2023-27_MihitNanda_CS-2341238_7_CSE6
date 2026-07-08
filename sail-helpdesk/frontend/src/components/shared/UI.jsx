@@ -125,9 +125,9 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="flex min-h-full items-center justify-center p-4">
         <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} fade-up`}>
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#DDE3F0]">
-            <h2 className="text-base font-bold text-[#1B2A6B] font-heading">{title}</h2>
-            <button onClick={onClose} className="text-[#8890B5] hover:text-[#1B2A6B] p-1 rounded-lg hover:bg-[#EEF0FA]">
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-soft)' }}>
+            <h2 className="text-base font-bold font-heading" style={{ color: 'var(--sail)', fontFamily: "'Playfair Display', serif" }}>{title}</h2>
+            <button onClick={onClose} className="p-1 rounded-lg hover:bg-[--off]" style={{ color: 'var(--text-light)' }}>
               <X size={16} />
             </button>
           </div>
