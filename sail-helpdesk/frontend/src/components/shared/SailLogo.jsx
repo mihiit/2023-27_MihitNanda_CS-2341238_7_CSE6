@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Inline the logo as a component using the public path
-export default function SailLogo({ size = 40, className = '' }) {
+export default function SailLogo({ size = 58, className = '' }) {
   return (
     <img
       src="/sail-logo.png"
@@ -10,13 +10,13 @@ export default function SailLogo({ size = 40, className = '' }) {
       width={size}
       height={size}
       className={className}
-      style={{ objectFit: 'contain' }}
+      style={{ objectFit: 'contain',  transform: 'scale(1.9)' }}
     />
   );
 }
 
 // SVG fallback that matches the exact logo shape for places needing SVG
-export function SailLogoSVG({ size = 40, color = '#1B2A6B', textColor = '#1B2A6B' }) {
+export function SailLogoSVG({ size = 58, color = '#1B2A6B', textColor = '#1B2A6B' }) {
   return (
     <svg width={size} height={size * 1.25} viewBox="0 0 200 250" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Outer diamond */}
